@@ -1,0 +1,65 @@
+html, body { height: 100%; }
+.stage {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 22px; padding: 24px; outline: none;
+  cursor: pointer;
+}
+
+.terminal { width: min(560px, 92vw); overflow: hidden; }
+
+.term-bar {
+  display: flex; align-items: center; gap: 8px;
+  padding: 9px 12px;
+  background: var(--bg-3);
+  border-bottom: 1px solid var(--line);
+}
+.dot { width: 11px; height: 11px; border-radius: 50%; background: #333; }
+.dot.r { background: #ff5f56; } .dot.y { background: #ffbd2e; } .dot.g { background: #27c93f; }
+.term-title { margin-left: 8px; font-size: 12px; color: var(--txt-dim); }
+.term-flake { margin-left: auto; color: var(--accent); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+
+.term-body { padding: 20px 20px 22px; }
+.line { margin: 0 0 8px; font-size: 13px; }
+.line.dim { color: var(--txt-dim); }
+
+.page {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 13px; margin: 16px 0;
+}
+.page-fav { width: 30px; height: 30px; border-radius: 6px; flex: none; background: var(--bg-2); }
+.page-meta { min-width: 0; }
+.page-title {
+  font-size: 15px; color: #fff; font-weight: 600;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.page-url {
+  font-size: 11.5px; margin-top: 3px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  direction: ltr;
+}
+.est { font-size: 12px; }
+
+.restore { width: 100%; padding: 12px; font-size: 14px; margin-top: 4px; }
+.restore .ico { filter: drop-shadow(0 0 6px var(--accent-glow)); }
+.restore .key {
+  margin-left: auto; font-size: 11px; color: var(--txt-dim);
+  border: 1px solid var(--line-2); border-radius: 4px; padding: 1px 6px;
+}
+.hint { text-align: center; margin: 12px 0 0; font-size: 11px; }
+
+.brand-foot {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--txt-faint);
+}
+.brand-foot img { width: 20px; height: 20px; opacity: .8; }
+.brand-foot b { color: var(--accent); }
+
+.waking .terminal { animation: thp-wake .28s ease forwards; }
+@keyframes thp-wake {
+  to { transform: scale(1.03); opacity: .35; filter: blur(1px); }
+}

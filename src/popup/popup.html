@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body class="thp">
+  <div class="wrap">
+    <header class="head">
+      <div class="thp-brand">
+        <img src="../../icons/icon48.png" alt="" />
+        <div>
+          <div class="name">TAB<b>HIBERNATOR</b></div>
+          <div class="sub"><span class="tag">DEV EDITION</span> <span class="ver" id="ver">v1.0.0</span></div>
+        </div>
+      </div>
+      <label class="switch" title="Enable / pause hibernation">
+        <input type="checkbox" id="enabled" />
+        <span class="track"></span>
+      </label>
+    </header>
+
+    <div class="statusline" id="statusline">
+      <span class="thp-prompt"></span><span id="statustext">booting…</span><span class="thp-cursor"></span>
+    </div>
+
+    <section class="stats">
+      <div class="stat card">
+        <div class="stat-val mono-num accent" id="frozenNow">0</div>
+        <div class="stat-label">frozen now</div>
+      </div>
+      <div class="stat card">
+        <div class="stat-val mono-num" id="ramNow">0<span class="unit">MB</span></div>
+        <div class="stat-label">ram reclaimed</div>
+      </div>
+      <div class="stat card">
+        <div class="stat-val mono-num" id="lifetime">0</div>
+        <div class="stat-label">frozen all-time</div>
+      </div>
+    </section>
+
+    <section class="card current" id="currentCard">
+      <div class="cur-top">
+        <img id="curFav" src="" alt="" class="favicon" />
+        <div class="cur-meta">
+          <div class="cur-title" id="curTitle">—</div>
+          <div class="cur-host faint" id="curHost">—</div>
+        </div>
+        <span class="chip" id="curChip">…</span>
+      </div>
+      <button class="btn wl-btn" id="wlBtn">
+        <span id="wlLabel">Never hibernate this site</span>
+      </button>
+    </section>
+
+    <section class="actions">
+      <button class="btn btn-primary" id="btnHibernate">
+        <span class="ico">❄</span> Hibernate tab
+      </button>
+      <button class="btn" id="btnOthers">
+        <span class="ico">❄❄</span> Others
+      </button>
+      <button class="btn" id="btnWake">
+        <span class="ico">☀</span> Wake all
+      </button>
+    </section>
+
+    <footer class="foot">
+      <a href="#" id="openOptions" class="thp-prompt">settings</a>
+      <span class="faint kbd-hint" id="kbdHint">Alt+Shift+H</span>
+    </footer>
+  </div>
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

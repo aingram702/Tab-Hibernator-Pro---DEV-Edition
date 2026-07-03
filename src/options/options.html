@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tab Hibernator Pro — DEV Edition · settings</title>
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="options.css" />
+</head>
+<body class="thp">
+  <div class="page">
+    <header class="head card">
+      <div class="thp-brand">
+        <img src="../../icons/icon128.png" alt="" />
+        <div>
+          <div class="name">TAB<b>HIBERNATOR</b> PRO</div>
+          <div class="sub"><span class="tag">DEV EDITION</span>
+            <span class="faint" id="ver">v1.0.0</span></div>
+        </div>
+      </div>
+      <div class="head-right">
+        <span class="saved" id="saved">saved</span>
+        <label class="enable-row">
+          <span class="faint">hibernation</span>
+          <span class="switch"><input type="checkbox" id="enabled"><span class="track"></span></span>
+        </label>
+      </div>
+    </header>
+
+    <!-- TIMING -------------------------------------------------------------->
+    <section class="card sect">
+      <h2><span class="thp-prompt"></span>idle timer</h2>
+      <p class="desc">Freeze a background tab after it has been untouched for this long.</p>
+      <div class="timer">
+        <div class="presets" id="presets"></div>
+        <div class="custom">
+          <input type="number" id="idleMinutes" min="1" max="1440" step="1" />
+          <span class="faint">minutes</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROTECTION ---------------------------------------------------------->
+    <section class="card sect">
+      <h2><span class="thp-prompt"></span>protection rules</h2>
+      <p class="desc">Tabs matching these are never auto-hibernated. The active tab is always safe.</p>
+      <div class="rules" id="rules"></div>
+    </section>
+
+    <!-- DEVELOPER ZONE ------------------------------------------------------>
+    <section class="card sect dev">
+      <h2><span class="thp-prompt"></span>developer zone</h2>
+      <div class="rules">
+        <label class="rule">
+          <span class="switch"><input type="checkbox" id="autoWhitelistLocalhost"><span class="track"></span></span>
+          <span class="rule-txt">
+            <b>Protect local dev servers</b>
+            <span class="faint">localhost, 127.0.0.1, *.local, *.test, 192.168.*, 10.*, 172.16–31.*</span>
+          </span>
+        </label>
+        <label class="rule">
+          <span class="switch"><input type="checkbox" id="devDomainsEnabled"><span class="track"></span></span>
+          <span class="rule-txt">
+            <b>Protect selected dev sites</b>
+            <span class="faint">Pick the tooling you keep open all day.</span>
+          </span>
+        </label>
+      </div>
+
+      <div class="dev-domains" id="devDomains"></div>
+
+      <div class="custom-wl">
+        <label class="fieldlabel">Custom never-hibernate patterns
+          <span class="faint">— one per line. Bare text = substring match; use <code>*</code> for globs
+          (e.g. <code>*.internal.corp</code>, <code>jenkins.*</code>).</span>
+        </label>
+        <textarea id="whitelist" rows="4" spellcheck="false"
+          placeholder="grafana.example.com&#10;*.staging.acme.io&#10;kibana"></textarea>
+      </div>
+    </section>
+
+    <!-- BEHAVIOR ------------------------------------------------------------>
+    <section class="card sect">
+      <h2><span class="thp-prompt"></span>behavior</h2>
+      <div class="rules">
+        <label class="rule">
+          <span class="switch"><input type="checkbox" id="useNativeDiscard"><span class="track"></span></span>
+          <span class="rule-txt">
+            <b>Use native Chrome discard</b>
+            <span class="faint">Unload via the engine instead of the branded freeze screen. Auto-reloads on click, keeps zero injected pages.</span>
+          </span>
+        </label>
+        <label class="rule">
+          <span class="switch"><input type="checkbox" id="autoRestoreOnFocus"><span class="track"></span></span>
+          <span class="rule-txt"><b>Auto-wake on focus</b>
+            <span class="faint">Switching to a frozen tab reloads it immediately.</span></span>
+        </label>
+        <label class="rule">
+          <span class="switch"><input type="checkbox" id="restoreScroll"><span class="track"></span></span>
+          <span class="rule-txt"><b>Restore scroll position</b>
+            <span class="faint">Return you to where you left off after waking.</span></span>
+        </label>
+        <label class="rule">
+          <span class="switch"><input type="checkbox" id="showBadge"><span class="track"></span></span>
+          <span class="rule-txt"><b>Show frozen-count badge</b>
+            <span class="faint">Number of hibernated tabs on the toolbar icon.</span></span>
+        </label>
+      </div>
+      <div class="custom" style="margin-top:12px">
+        <label class="fieldlabel">Est. RAM per tab</label>
+        <input type="number" id="tabMemoryMB" min="10" max="2000" step="5" />
+        <span class="faint">MB — used only for the “reclaimed” readout.</span>
+      </div>
+    </section>
+
+    <!-- APPEARANCE ---------------------------------------------------------->
+    <section class="card sect">
+      <h2><span class="thp-prompt"></span>appearance</h2>
+      <p class="desc">Accent color for the freeze screen, popup, and this page.</p>
+      <div class="accents" id="accents"></div>
+      <label class="rule" style="margin-top:14px">
+        <span class="switch"><input type="checkbox" id="scanlines"><span class="track"></span></span>
+        <span class="rule-txt"><b>CRT scanlines</b>
+          <span class="faint">Retro terminal overlay. Purely cosmetic.</span></span>
+      </label>
+    </section>
+
+    <!-- SHORTCUTS + DATA ---------------------------------------------------->
+    <section class="card sect">
+      <h2><span class="thp-prompt"></span>shortcuts &amp; data</h2>
+      <div class="shortcuts" id="shortcuts"></div>
+      <a href="#" id="editShortcuts" class="thp-prompt" style="font-size:12px">rebind keyboard shortcuts</a>
+
+      <div class="data-row">
+        <button class="btn" id="exportBtn">⭳ Export settings</button>
+        <button class="btn" id="importBtn">⭱ Import settings</button>
+        <button class="btn btn-danger" id="resetBtn">↺ Reset to defaults</button>
+        <input type="file" id="importFile" accept="application/json" hidden />
+      </div>
+    </section>
+
+    <footer class="foot faint">
+      Tab Hibernator Pro — DEV Edition · a developer-first revamp of tab suspension.
+    </footer>
+  </div>
+  <script type="module" src="options.js"></script>
+</body>
+</html>
