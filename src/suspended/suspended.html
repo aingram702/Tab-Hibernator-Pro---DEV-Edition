@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>❄ hibernated</title>
+  <link rel="icon" id="favlink" href="../../icons/icon32.png" />
+  <link rel="stylesheet" href="../styles/theme.css" />
+  <link rel="stylesheet" href="suspended.css" />
+</head>
+<body class="thp">
+  <main class="stage" id="stage" tabindex="0">
+    <div class="terminal card">
+      <div class="term-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        <span class="term-title">tab-hibernator://frozen</span>
+        <span class="term-flake">❄</span>
+      </div>
+      <div class="term-body">
+        <p class="line"><span class="thp-prompt"></span>suspend --tab <span class="ok">OK</span></p>
+        <p class="line muted">process paused · memory released · state preserved</p>
+
+        <div class="page">
+          <img id="fav" class="page-fav" src="../../icons/icon32.png" alt="" />
+          <div class="page-meta">
+            <div class="page-title" id="title">Hibernated tab</div>
+            <div class="page-url faint" id="url"></div>
+          </div>
+        </div>
+
+        <p class="line dim est" id="est"></p>
+
+        <button class="btn btn-primary restore" id="restore">
+          <span class="ico">☀</span> Wake this tab <span class="key">↵</span>
+        </button>
+        <p class="line hint faint" id="hint">click anywhere · press Enter · or just switch back</p>
+      </div>
+    </div>
+    <div class="brand-foot">
+      <img src="../../icons/icon32.png" alt="" />
+      <span>TAB<b>HIBERNATOR</b> <span class="tag">DEV EDITION</span></span>
+    </div>
+  </main>
+  <script type="module" src="suspended.js"></script>
+</body>
+</html>
