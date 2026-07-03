@@ -100,6 +100,9 @@ async function setupContextMenus() {
     { id: 'thp-hibernate-others', title: 'Hibernate all other tabs' },
     { id: 'thp-restore-all', title: 'Wake all hibernated tabs' },
     { id: 'thp-sep', type: 'separator' },
+    { id: 'thp-organize', title: 'Organize tabs by site' },
+    { id: 'thp-ungroup', title: 'Ungroup all tabs' },
+    { id: 'thp-sep2', type: 'separator' },
     { id: 'thp-whitelist-site', title: 'Never hibernate this site' },
   ];
   for (const it of items) {
@@ -112,6 +115,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     case 'thp-hibernate': if (tab) await hibernateTab(tab, { manual: true }); break;
     case 'thp-hibernate-others': await hibernateOthers(tab); break;
     case 'thp-restore-all': await restoreAll(); break;
+    case 'thp-organize': await organizeBySite(tab?.windowId); break;
+    case 'thp-ungroup': await ungroupAll(tab?.windowId); break;
     case 'thp-whitelist-site': if (tab?.url) await whitelistSite(tab.url); break;
   }
 });
@@ -125,6 +130,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     case 'hibernate-current': if (tab) await hibernateTab(tab, { manual: true }); break;
     case 'hibernate-others': await hibernateOthers(tab); break;
     case 'restore-all': await restoreAll(); break;
+    case 'organize-site': await organizeBySite(tab?.windowId); break;
     case 'toggle-whitelist': if (tab?.url) await toggleWhitelistSite(tab.url); break;
   }
 });
@@ -276,6 +282,76 @@ async function toggleWhitelistSite(url) {
 }
 
 // ---------------------------------------------------------------------------
+// tab organizer — one-click "group by site" using native tab groups
+// ---------------------------------------------------------------------------
+const GROUP_COLORS = ['blue', 'cyan', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'grey'];
+// second-level labels that precede a country TLD (co.uk, com.au, …)
+const SECOND_LEVEL = new Set(['co', 'com', 'org', 'net', 'gov', 'edu', 'ac', 'gob', 'go']);
+
+// Collapse a hostname to its registrable-ish domain so api.stripe.com and
+// dashboard.stripe.com land in the same "stripe.com" group.
+function baseDomain(host) {
+  host = String(host);
+  // Never fold IP literals (IPv4/IPv6) — they are the whole identity.
+  if (host.includes(':') || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return host;
+  const parts = host.split('.').filter(Boolean);
+  if (parts.length <= 2) return host;
+  const secondLast = parts[parts.length - 2];
+  if (SECOND_LEVEL.has(secondLast)) return parts.slice(-3).join('.');
+  return parts.slice(-2).join('.');
+}
+
+function colorFor(domain) {
+  let h = 0;
+  for (let i = 0; i < domain.length; i++) h = (h * 31 + domain.charCodeAt(i)) >>> 0;
+  return GROUP_COLORS[h % GROUP_COLORS.length];
+}
+
+// Group every (unpinned) tab in a window by its site. Suspended tabs are
+// grouped by their original site so freezing doesn't scatter your groups.
+async function organizeBySite(windowId) {
+  if (windowId == null) {
+    const w = await chrome.windows.getCurrent();
+    windowId = w.id;
+  }
+  const tabs = await chrome.tabs.query({ windowId, pinned: false });
+  const buckets = new Map();
+  for (const t of tabs) {
+    let url = t.url;
+    if (isSuspendedUrl(url)) url = originalUrlFromSuspended(url) || url;
+    if (!isHibernatableUrl(url)) continue; // skip chrome://, extension pages, etc.
+    const host = hostnameOf(url);
+    if (!host) continue;
+    const dom = baseDomain(host);
+    if (!buckets.has(dom)) buckets.set(dom, []);
+    buckets.get(dom).push(t.id);
+  }
+  let groups = 0;
+  for (const [dom, ids] of buckets) {
+    if (ids.length < 2) continue; // don't box up lone tabs
+    try {
+      const groupId = await chrome.tabs.group({ tabIds: ids, createProperties: { windowId } });
+      await chrome.tabGroups.update(groupId, { title: dom, color: colorFor(dom) });
+      groups++;
+    } catch { /* a tab may have closed mid-operation */ }
+  }
+  return { groups };
+}
+
+async function ungroupAll(windowId) {
+  if (windowId == null) {
+    const w = await chrome.windows.getCurrent();
+    windowId = w.id;
+  }
+  const tabs = await chrome.tabs.query({ windowId });
+  const grouped = tabs
+    .filter(t => t.groupId != null && t.groupId !== chrome.tabGroups.TAB_GROUP_ID_NONE)
+    .map(t => t.id);
+  if (grouped.length) { try { await chrome.tabs.ungroup(grouped); } catch {} }
+  return { ungrouped: grouped.length };
+}
+
+// ---------------------------------------------------------------------------
 // badge
 // ---------------------------------------------------------------------------
 async function countSuspended() {
@@ -357,6 +433,16 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         const next = await saveSettings(msg.settings || {});
         await refreshBadge();
         sendResponse({ settings: next });
+        break;
+      }
+      case 'THP_organizeSite': {
+        const res = await organizeBySite(msg.windowId);
+        sendResponse({ ok: true, ...res });
+        break;
+      }
+      case 'THP_ungroupAll': {
+        const res = await ungroupAll(msg.windowId);
+        sendResponse({ ok: true, ...res });
         break;
       }
       case 'THP_getPendingScroll': {

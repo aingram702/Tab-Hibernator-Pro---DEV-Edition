@@ -29,6 +29,9 @@ knows what a developer's browser looks like:
   consoles, Figma, CodeSandbox, StackBlitz, Colab, and more.
 - 🎛️ **Custom patterns** — bare substrings or `*` globs (e.g. `*.staging.acme.io`,
   `jenkins.*`) for your internal tooling.
+- 🗂️ **One-click tab organizer** — group the current window's tabs by site into
+  native, color-coded tab groups (suspended tabs group by their real domain too).
+  One button to group, one to ungroup.
 - 🔊 **Respects audio, pinned tabs, and offline** — configurable.
 - 💾 **Restores scroll position** when a tab wakes.
 - ↩️ **Preserves the original URL & title** so frozen tabs stay recognizable in
@@ -54,6 +57,8 @@ Click the toolbar icon for the control panel:
 </p>
 
 - **Hibernate tab / Others / Wake all** — one-click actions.
+- **Group tabs by site** — organize the window into tidy, color-coded tab groups
+  (and an ungroup button to flatten them again).
 - **Never hibernate this site** — protect the current domain instantly.
 - Master toggle to pause/resume monitoring.
 - Live count of frozen tabs and estimated RAM reclaimed.
