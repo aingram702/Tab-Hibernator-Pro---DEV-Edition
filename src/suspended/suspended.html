@@ -30,10 +30,20 @@
 
         <p class="line dim est" id="est"></p>
 
-        <button class="btn btn-primary restore" id="restore">
+        <p class="line danger unsafe" id="unsafe" hidden>
+          ⚠ This frozen page has an unrecognized address and won't be
+          auto-restored. Close the tab or navigate manually.
+        </p>
+
+        <button class="btn btn-primary restore" id="restore" aria-label="Wake this tab">
           <span class="ico">☀</span> Wake this tab <span class="key">↵</span>
         </button>
         <p class="line hint faint" id="hint">click anywhere · press Enter · or just switch back</p>
+
+        <div class="susp-actions">
+          <button class="btn linkbtn" id="wlSite" hidden></button>
+          <button class="btn linkbtn" id="openSettings">⚙ settings</button>
+        </div>
       </div>
     </div>
     <div class="brand-foot">

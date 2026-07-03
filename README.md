@@ -95,9 +95,12 @@ in settings.
 ### Permissions, briefly
 
 `tabs` (see/manage tabs), `storage` (settings + stats), `alarms` (periodic scan),
-`contextMenus` (right-click actions), `scripting` + host access (detect unsaved
-input & restore scroll on your pages). No data ever leaves your browser — there is
-no network code and no telemetry.
+`contextMenus` (right-click actions), and host access for the content script that
+detects unsaved input & restores scroll on your pages. No `scripting` permission,
+no data ever leaving your browser — there is no network code and no telemetry.
+
+Navigation is locked to `http(s)` only: the freeze screen refuses to restore any
+non-web address, so a crafted suspended URL can't run code in the extension.
 
 ## Development
 

@@ -29,8 +29,7 @@
     "tabs",
     "storage",
     "alarms",
-    "contextMenus",
-    "scripting"
+    "contextMenus"
   ],
   "host_permissions": ["http://*/*", "https://*/*"],
   "content_scripts": [
