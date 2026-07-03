@@ -2,7 +2,7 @@
 import {
   getSettings, saveSettings, getStats, bumpStats,
   suspendedPageUrl, isSuspendedUrl, originalUrlFromSuspended,
-  isHibernatableUrl, isWhitelisted, matchesPattern, isLocalDevUrl,
+  isHibernatableUrl, isSafeNavUrl, isWhitelisted, isLocalDevUrl,
 } from '../lib/settings.js';
 
 const ALARM_NAME = 'thp-scan';
@@ -49,8 +49,10 @@ chrome.tabs.onActivated.addListener(({ tabId }) => { stampActive(tabId); });
 chrome.tabs.onCreated.addListener((tab) => { if (tab.id != null) stampActive(tab.id); });
 chrome.tabs.onUpdated.addListener((tabId, info) => {
   if (info.status === 'complete') stampActive(tabId);
+  // keep the frozen-count badge fresh as tabs navigate / get discarded
+  if (info.url || info.status === 'complete' || 'discarded' in info) refreshBadge();
 });
-chrome.tabs.onRemoved.addListener((tabId) => { forgetTab(tabId); });
+chrome.tabs.onRemoved.addListener((tabId) => { forgetTab(tabId); refreshBadge(); });
 chrome.windows.onFocusChanged.addListener(async (winId) => {
   if (winId === chrome.windows.WINDOW_ID_NONE) return;
   try {
@@ -62,13 +64,17 @@ chrome.windows.onFocusChanged.addListener(async (winId) => {
 // ---------------------------------------------------------------------------
 // lifecycle
 // ---------------------------------------------------------------------------
-chrome.runtime.onInstalled.addListener(async () => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   await getSettings(); // materialize defaults
   await setupContextMenus();
   await ensureAlarm();
   const tabs = await chrome.tabs.query({});
   for (const t of tabs) if (t.id != null) stampActive(t.id);
   await refreshBadge();
+  // First-run onboarding: open settings so users can see what's protected.
+  if (details.reason === 'install') {
+    try { await chrome.runtime.openOptionsPage(); } catch { /* ignore */ }
+  }
 });
 chrome.runtime.onStartup.addListener(async () => {
   await ensureAlarm();
@@ -232,7 +238,11 @@ async function restoreAll() {
   for (const t of tabs) {
     if (isSuspendedUrl(t.url)) {
       const orig = originalUrlFromSuspended(t.url);
-      if (orig) { try { await chrome.tabs.update(t.id, { url: orig }); } catch {} }
+      // Only ever navigate back to a real http(s) page — never to a
+      // javascript:/data: payload smuggled into the suspended URL.
+      if (isSafeNavUrl(orig)) {
+        try { await chrome.tabs.update(t.id, { url: orig }); } catch {}
+      }
     }
   }
   await refreshBadge();
@@ -275,21 +285,21 @@ async function countSuspended() {
 
 async function refreshBadge() {
   const s = await getSettings();
+  const n = await countSuspended();
+  // toolbar tooltip always reflects live state, even when the badge is hidden
+  const title = s.enabled
+    ? `Tab Hibernator Pro — monitoring · ${n} frozen · freeze after ${s.idleMinutes}m idle`
+    : 'Tab Hibernator Pro — paused';
+  await chrome.action.setTitle({ title });
+
   if (!s.showBadge) {
     await chrome.action.setBadgeText({ text: '' });
     return;
   }
-  const n = await countSuspended();
   await chrome.action.setBadgeBackgroundColor({ color: '#0d1117' });
-  await chrome.action.setBadgeTextColor?.({ color: '#0aff9c' });
+  await chrome.action.setBadgeTextColor?.({ color: s.enabled ? '#0aff9c' : '#7d8b9a' });
   await chrome.action.setBadgeText({ text: n > 0 ? String(n) : '' });
 }
-
-// keep badge fresh as tabs change
-chrome.tabs.onUpdated.addListener((_id, info) => {
-  if (info.url || info.status === 'complete' || 'discarded' in info) refreshBadge();
-});
-chrome.tabs.onRemoved.addListener(() => refreshBadge());
 
 // ---------------------------------------------------------------------------
 // message API (popup / options / suspended page)
@@ -354,13 +364,10 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         sendResponse({ scrollY: y });
         break;
       }
-      case 'THP_restoreUrl': {
-        // suspended page asks to be replaced by its original URL
-        if (msg.url && _sender.tab?.id != null) {
-          try { await chrome.tabs.update(_sender.tab.id, { url: msg.url }); } catch {}
-        }
-        await refreshBadge();
-        sendResponse({ ok: true });
+      case 'THP_whitelistUrl': {
+        // freeze screen asks to protect the frozen site; validate scheme first
+        if (isSafeNavUrl(msg.url)) await whitelistSite(msg.url);
+        sendResponse({ ok: isSafeNavUrl(msg.url) });
         break;
       }
       default:

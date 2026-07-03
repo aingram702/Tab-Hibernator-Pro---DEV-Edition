@@ -17,7 +17,7 @@
         </div>
       </div>
       <label class="switch" title="Enable / pause hibernation">
-        <input type="checkbox" id="enabled" />
+        <input type="checkbox" id="enabled" aria-label="Enable or pause hibernation" />
         <span class="track"></span>
       </label>
     </header>
@@ -56,14 +56,14 @@
     </section>
 
     <section class="actions">
-      <button class="btn btn-primary" id="btnHibernate">
-        <span class="ico">❄</span> Hibernate tab
+      <button class="btn btn-primary" id="btnHibernate" aria-label="Hibernate the current tab">
+        <span class="ico" aria-hidden="true">❄</span> Hibernate tab
       </button>
-      <button class="btn" id="btnOthers">
-        <span class="ico">❄❄</span> Others
+      <button class="btn" id="btnOthers" aria-label="Hibernate all other tabs">
+        <span class="ico" aria-hidden="true">❄❄</span> Others
       </button>
-      <button class="btn" id="btnWake">
-        <span class="ico">☀</span> Wake all
+      <button class="btn" id="btnWake" aria-label="Wake all hibernated tabs">
+        <span class="ico" aria-hidden="true">☀</span> Wake all
       </button>
     </section>
 

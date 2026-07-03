@@ -127,17 +127,39 @@ export function isHibernatableUrl(url) {
   return /^https?:\/\//i.test(url);
 }
 
+// Only http(s) URLs may ever be used as a navigation target. This is the
+// security gate that prevents javascript:/data:/blob:/etc. from being
+// navigated to (which, in an extension-origin page, would run with chrome.*
+// privileges). Kept intentionally strict.
+export function isSafeNavUrl(url) {
+  if (typeof url !== 'string') return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === 'http:' || u.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 // Match a URL against a single whitelist pattern.
 // Supports bare hostnames/substrings and `*` globs.
 export function matchesPattern(url, pattern) {
-  if (!pattern) return false;
+  if (!pattern || typeof url !== 'string') return false;
   const p = pattern.trim().toLowerCase();
-  if (!p) return false;
+  // Bound pattern size to keep glob→regex translation cheap and non-pathological.
+  if (!p || p.length > 200) return false;
   const target = url.toLowerCase();
   if (p.includes('*')) {
-    const re = new RegExp(
-      '^' + p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'
-    );
+    // Cap wildcards so a hostile/typo'd pattern can't build a catastrophic regex.
+    if ((p.match(/\*/g) || []).length > 20) return false;
+    let re;
+    try {
+      re = new RegExp(
+        '^' + p.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*') + '$'
+      );
+    } catch {
+      return false;
+    }
     // match against full url and hostname
     try {
       const host = new URL(url).hostname.toLowerCase();

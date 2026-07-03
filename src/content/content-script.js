@@ -33,8 +33,6 @@
 
   document.addEventListener('input', markDirty, { capture: true, passive: true });
   document.addEventListener('change', markDirty, { capture: true, passive: true });
-  // A registered beforeunload handler is a strong signal of unsaved state.
-  window.addEventListener('beforeunload', () => {}, { capture: true });
 
   // On (re)load, ask the background whether it stashed a scroll position for
   // this tab when it was hibernated, and if so jump back to it.
@@ -59,7 +57,6 @@
       sendResponse({
         dirty: computeDirtyOnDemand(),
         scrollY: window.scrollY || window.pageYOffset || 0,
-        hasBeforeUnload: typeof window.onbeforeunload === 'function',
       });
       return true;
     }
