@@ -29,6 +29,9 @@ knows what a developer's browser looks like:
   consoles, Figma, CodeSandbox, StackBlitz, Colab, and more.
 - 🎛️ **Custom patterns** — bare substrings or `*` globs (e.g. `*.staging.acme.io`,
   `jenkins.*`) for your internal tooling.
+- 🗂️ **One-click tab organizer** — group the current window's tabs by site into
+  native, color-coded tab groups (suspended tabs group by their real domain too).
+  One button to group, one to ungroup.
 - 🔊 **Respects audio, pinned tabs, and offline** — configurable.
 - 💾 **Restores scroll position** when a tab wakes.
 - ↩️ **Preserves the original URL & title** so frozen tabs stay recognizable in
@@ -54,6 +57,8 @@ Click the toolbar icon for the control panel:
 </p>
 
 - **Hibernate tab / Others / Wake all** — one-click actions.
+- **Group tabs by site** — organize the window into tidy, color-coded tab groups
+  (and an ungroup button to flatten them again).
 - **Never hibernate this site** — protect the current domain instantly.
 - Master toggle to pause/resume monitoring.
 - Live count of frozen tabs and estimated RAM reclaimed.
@@ -104,11 +109,18 @@ non-web address, so a crafted suspended URL can't run code in the extension.
 
 ## Development
 
+No bundler, no build, no dependencies — load the folder unpacked and hack away.
+
 ```bash
-node tools/gen-icons.mjs   # regenerate the icon set (pure Node, no deps)
+npm test          # unit tests for the URL/whitelist/organizer logic (node --test)
+npm run lint      # validate manifest.json + syntax-check every JS file
+npm run gen-icons # regenerate the icon set (pure Node)
 ```
 
-Load the folder unpacked as above and hack away — no bundler or build.
+`npm test` and `npm run lint` need only Node ≥ 18 — no `npm install` required. CI
+runs both on every push (`.github/workflows/ci.yml`). The pure logic lives in
+`src/lib/settings.js` so it stays unit-testable; UI and hibernation flows are
+exercised by an in-browser Playwright harness during development.
 
 ## License
 

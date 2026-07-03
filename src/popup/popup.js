@@ -101,6 +101,21 @@ $('wlBtn').addEventListener('click', async () => {
   refresh();
 });
 
+$('btnOrganize').addEventListener('click', async () => {
+  const btn = $('btnOrganize');
+  btn.disabled = true;
+  const r = await sendBg({ type: 'THP_organizeSite' });
+  flash(btn);
+  btn.querySelector('.ico').nextSibling.textContent =
+    r && r.groups ? ` Grouped ${r.groups} site${r.groups === 1 ? '' : 's'}` : ' Nothing to group';
+  setTimeout(() => window.close(), 650);
+});
+
+$('btnUngroup').addEventListener('click', async () => {
+  await sendBg({ type: 'THP_ungroupAll' });
+  flash($('btnUngroup'));
+});
+
 $('openOptions').addEventListener('click', (e) => {
   e.preventDefault();
   chrome.runtime.openOptionsPage();

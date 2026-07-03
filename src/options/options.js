@@ -97,6 +97,7 @@ function renderShortcuts() {
     'hibernate-current': 'Hibernate current tab',
     'hibernate-others': 'Hibernate other tabs',
     'restore-all': 'Wake all tabs',
+    'organize-site': 'Organize tabs by site',
     'toggle-whitelist': 'Toggle protect this site',
   };
   chrome.commands.getAll((cmds) => {

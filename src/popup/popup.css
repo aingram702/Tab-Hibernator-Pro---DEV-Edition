@@ -55,6 +55,11 @@
 .actions { display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 8px; }
 .actions .ico { filter: drop-shadow(0 0 4px var(--accent-glow)); }
 
+.organize { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.btn-organize { justify-content: center; }
+.organize .ico { filter: drop-shadow(0 0 4px var(--accent-glow)); }
+#btnUngroup { padding-inline: 12px; }
+
 .foot {
   display: flex; align-items: center; justify-content: space-between;
   font-size: 11px; padding-top: 2px;

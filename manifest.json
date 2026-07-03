@@ -27,6 +27,7 @@
   "options_page": "src/options/options.html",
   "permissions": [
     "tabs",
+    "tabGroups",
     "storage",
     "alarms",
     "contextMenus"
@@ -52,6 +53,9 @@
     "restore-all": {
       "suggested_key": { "default": "Alt+Shift+R" },
       "description": "Wake all hibernated tabs"
+    },
+    "organize-site": {
+      "description": "Organize tabs by site (group by domain)"
     },
     "toggle-whitelist": {
       "description": "Toggle never-hibernate for the current site"
