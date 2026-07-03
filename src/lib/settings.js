@@ -171,6 +171,35 @@ export function matchesPattern(url, pattern) {
   return target.includes(p);
 }
 
+// ---------------------------------------------------------------------------
+// tab-organizer helpers (pure) — grouping tabs by site
+// ---------------------------------------------------------------------------
+export const GROUP_COLORS = [
+  'blue', 'cyan', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'grey',
+];
+// second-level labels that precede a country TLD (co.uk, com.au, …)
+const SECOND_LEVEL = new Set(['co', 'com', 'org', 'net', 'gov', 'edu', 'ac', 'gob', 'go']);
+
+// Collapse a hostname to its registrable-ish domain so api.stripe.com and
+// dashboard.stripe.com land in the same "stripe.com" group. IP literals
+// (IPv4/IPv6) are returned whole — they are the entire identity.
+export function baseDomain(host) {
+  host = String(host);
+  if (host.includes(':') || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return host;
+  const parts = host.split('.').filter(Boolean);
+  if (parts.length <= 2) return host;
+  const secondLast = parts[parts.length - 2];
+  if (SECOND_LEVEL.has(secondLast)) return parts.slice(-3).join('.');
+  return parts.slice(-2).join('.');
+}
+
+// Deterministic, stable color for a domain's tab group.
+export function colorFor(domain) {
+  let h = 0;
+  for (let i = 0; i < domain.length; i++) h = (h * 31 + domain.charCodeAt(i)) >>> 0;
+  return GROUP_COLORS[h % GROUP_COLORS.length];
+}
+
 // Localhost / private-dev-server detection.
 export function isLocalDevUrl(url) {
   try {

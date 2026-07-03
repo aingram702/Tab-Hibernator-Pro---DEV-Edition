@@ -3,6 +3,7 @@ import {
   getSettings, saveSettings, getStats, bumpStats,
   suspendedPageUrl, isSuspendedUrl, originalUrlFromSuspended,
   isHibernatableUrl, isSafeNavUrl, isWhitelisted, isLocalDevUrl,
+  baseDomain, colorFor,
 } from '../lib/settings.js';
 
 const ALARM_NAME = 'thp-scan';
@@ -283,29 +284,8 @@ async function toggleWhitelistSite(url) {
 
 // ---------------------------------------------------------------------------
 // tab organizer — one-click "group by site" using native tab groups
+// (baseDomain / colorFor live in ../lib/settings.js so they can be unit-tested)
 // ---------------------------------------------------------------------------
-const GROUP_COLORS = ['blue', 'cyan', 'green', 'yellow', 'orange', 'red', 'pink', 'purple', 'grey'];
-// second-level labels that precede a country TLD (co.uk, com.au, …)
-const SECOND_LEVEL = new Set(['co', 'com', 'org', 'net', 'gov', 'edu', 'ac', 'gob', 'go']);
-
-// Collapse a hostname to its registrable-ish domain so api.stripe.com and
-// dashboard.stripe.com land in the same "stripe.com" group.
-function baseDomain(host) {
-  host = String(host);
-  // Never fold IP literals (IPv4/IPv6) — they are the whole identity.
-  if (host.includes(':') || /^\d{1,3}(\.\d{1,3}){3}$/.test(host)) return host;
-  const parts = host.split('.').filter(Boolean);
-  if (parts.length <= 2) return host;
-  const secondLast = parts[parts.length - 2];
-  if (SECOND_LEVEL.has(secondLast)) return parts.slice(-3).join('.');
-  return parts.slice(-2).join('.');
-}
-
-function colorFor(domain) {
-  let h = 0;
-  for (let i = 0; i < domain.length; i++) h = (h * 31 + domain.charCodeAt(i)) >>> 0;
-  return GROUP_COLORS[h % GROUP_COLORS.length];
-}
 
 // Group every (unpinned) tab in a window by its site. Suspended tabs are
 // grouped by their original site so freezing doesn't scatter your groups.

@@ -109,11 +109,18 @@ non-web address, so a crafted suspended URL can't run code in the extension.
 
 ## Development
 
+No bundler, no build, no dependencies — load the folder unpacked and hack away.
+
 ```bash
-node tools/gen-icons.mjs   # regenerate the icon set (pure Node, no deps)
+npm test          # unit tests for the URL/whitelist/organizer logic (node --test)
+npm run lint      # validate manifest.json + syntax-check every JS file
+npm run gen-icons # regenerate the icon set (pure Node)
 ```
 
-Load the folder unpacked as above and hack away — no bundler or build.
+`npm test` and `npm run lint` need only Node ≥ 18 — no `npm install` required. CI
+runs both on every push (`.github/workflows/ci.yml`). The pure logic lives in
+`src/lib/settings.js` so it stays unit-testable; UI and hibernation flows are
+exercised by an in-browser Playwright harness during development.
 
 ## License
 
