@@ -169,3 +169,16 @@ input:focus, textarea:focus, select:focus {
 .faint { color: var(--txt-faint); }
 .accent { color: var(--accent); }
 .mono-num { font-variant-numeric: tabular-nums; }
+
+/* Respect users who ask for less motion: kill the blinking cursor, the CRT
+   scanline shimmer, and all transitions/animations. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  body.thp.scanlines::after { display: none !important; }
+  .thp-cursor { opacity: 1 !important; }
+}
