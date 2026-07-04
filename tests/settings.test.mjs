@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import {
   isHibernatableUrl, isSafeNavUrl, isLocalDevUrl, matchesPattern,
   isWhitelisted, originalUrlFromSuspended, baseDomain, colorFor,
-  GROUP_COLORS, DEFAULTS,
+  normalizeSettings, GROUP_COLORS, ACCENTS, DEFAULTS,
 } from '../src/lib/settings.js';
 
 test('isHibernatableUrl accepts only http(s)', () => {
@@ -100,6 +100,36 @@ test('colorFor is deterministic and returns a valid group color', () => {
   for (const d of ['stripe.com', 'localhost', 'example.org', 'a.b.c.d']) {
     assert.ok(GROUP_COLORS.includes(colorFor(d)), d);
   }
+});
+
+test('normalizeSettings coerces and clamps bad input', () => {
+  const out = normalizeSettings({
+    idleMinutes: '9999',      // string + over max → clamped to 1440
+    tabMemoryMB: -5,          // under min → clamped to 10
+    enabled: 0,               // → false
+    showBadge: 'yes',         // truthy → true
+    accent: 'chartreuse',     // invalid → default
+    whitelist: ['  a.com ', 'a.com', 42, ''], // trim + dedupe + drop non-strings/empties
+    devDomains: 'not-an-array',               // → []
+    bogusKey: 'should be dropped',
+  });
+  assert.equal(out.idleMinutes, 1440);
+  assert.equal(out.tabMemoryMB, 10);
+  assert.equal(out.enabled, false);
+  assert.equal(out.showBadge, true);
+  assert.equal(out.accent, DEFAULTS.accent);
+  assert.deepEqual(out.whitelist, ['a.com']);
+  assert.deepEqual(out.devDomains, []);
+  assert.ok(!('bogusKey' in out));
+  // every DEFAULTS key is present
+  for (const k of Object.keys(DEFAULTS)) assert.ok(k in out, k);
+});
+
+test('normalizeSettings on junk falls back to defaults', () => {
+  assert.deepEqual(normalizeSettings(null), normalizeSettings({}));
+  const out = normalizeSettings('garbage');
+  assert.equal(out.idleMinutes, DEFAULTS.idleMinutes);
+  assert.ok(ACCENTS[out.accent]);
 });
 
 test('DEFAULTS are sane', () => {

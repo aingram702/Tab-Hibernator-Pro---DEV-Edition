@@ -51,9 +51,9 @@ chrome.tabs.onCreated.addListener((tab) => { if (tab.id != null) stampActive(tab
 chrome.tabs.onUpdated.addListener((tabId, info) => {
   if (info.status === 'complete') stampActive(tabId);
   // keep the frozen-count badge fresh as tabs navigate / get discarded
-  if (info.url || info.status === 'complete' || 'discarded' in info) refreshBadge();
+  if (info.url || info.status === 'complete' || 'discarded' in info) scheduleBadgeRefresh();
 });
-chrome.tabs.onRemoved.addListener((tabId) => { forgetTab(tabId); refreshBadge(); });
+chrome.tabs.onRemoved.addListener((tabId) => { forgetTab(tabId); scheduleBadgeRefresh(); });
 chrome.windows.onFocusChanged.addListener(async (winId) => {
   if (winId === chrome.windows.WINDOW_ID_NONE) return;
   try {
@@ -160,8 +160,9 @@ async function askContentState(tabId) {
 }
 
 // Hibernate a single tab. Returns true if it was hibernated.
-async function hibernateTab(tab, { manual = false } = {}) {
-  const settings = await getSettings();
+// `settings` may be passed in to avoid a storage read per tab during a scan.
+async function hibernateTab(tab, { manual = false, settings = null } = {}) {
+  settings = settings || await getSettings();
   if (!manual) {
     if (await isTabProtected(tab, settings)) return false;
   } else {
@@ -227,16 +228,17 @@ async function scanAndHibernate() {
     if (await isTabProtected(tab, settings)) continue;
     const last = activity[tab.id] ?? now; // unknown => treat as just-seen
     if (now - last < threshold) continue;
-    await hibernateTab(tab, { manual: false });
+    await hibernateTab(tab, { manual: false, settings });
   }
 }
 
 async function hibernateOthers(activeTab) {
+  const settings = await getSettings();
   const win = activeTab?.windowId;
   const tabs = await chrome.tabs.query(win != null ? { windowId: win } : {});
   for (const t of tabs) {
     if (activeTab && t.id === activeTab.id) continue;
-    await hibernateTab(t, { manual: true });
+    await hibernateTab(t, { manual: true, settings });
   }
 }
 
@@ -250,6 +252,9 @@ async function restoreAll() {
       if (isSafeNavUrl(orig)) {
         try { await chrome.tabs.update(t.id, { url: orig }); } catch {}
       }
+    } else if (t.discarded) {
+      // native-discard mode: force a reload so "Wake all" actually wakes them
+      try { await chrome.tabs.reload(t.id); } catch {}
     }
   }
   await refreshBadge();
@@ -355,6 +360,13 @@ async function refreshBadge() {
   await chrome.action.setBadgeBackgroundColor({ color: '#0d1117' });
   await chrome.action.setBadgeTextColor?.({ color: s.enabled ? '#0aff9c' : '#7d8b9a' });
   await chrome.action.setBadgeText({ text: n > 0 ? String(n) : '' });
+}
+
+// Coalesce the bursts of tab events fired during a page load into one refresh.
+let badgeTimer = null;
+function scheduleBadgeRefresh() {
+  if (badgeTimer) return;
+  badgeTimer = setTimeout(() => { badgeTimer = null; refreshBadge(); }, 300);
 }
 
 // ---------------------------------------------------------------------------

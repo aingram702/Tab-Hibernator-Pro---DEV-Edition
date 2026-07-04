@@ -70,14 +70,49 @@ export const DEFAULT_STATS = {
   mbSavedTotal: 0,    // lifetime MB estimate
 };
 
+// Coerce any input (corrupted storage, hand-edited import, older schema) into a
+// valid settings object: clamp numbers, force booleans, validate enums, and
+// drop unknown keys. This is the single guard that keeps a bad value from
+// wedging the extension.
+export function normalizeSettings(input) {
+  const s = { ...DEFAULTS, ...(input && typeof input === 'object' ? input : {}) };
+  const clampNum = (v, min, max, dflt) => {
+    const n = Math.round(Number(v));
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : dflt;
+  };
+  s.idleMinutes = clampNum(s.idleMinutes, 1, 1440, DEFAULTS.idleMinutes);
+  s.tabMemoryMB = clampNum(s.tabMemoryMB, 10, 4096, DEFAULTS.tabMemoryMB);
+
+  const BOOLS = [
+    'enabled', 'neverSuspendPinned', 'neverSuspendAudible', 'neverSuspendUnsavedForms',
+    'neverSuspendOffline', 'neverSuspendActiveInWindow', 'autoWhitelistLocalhost',
+    'devDomainsEnabled', 'useNativeDiscard', 'autoRestoreOnFocus', 'restoreScroll',
+    'showBadge', 'scanlines',
+  ];
+  for (const k of BOOLS) s[k] = !!s[k];
+
+  const strArr = (a) => Array.isArray(a)
+    ? [...new Set(a.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim()))]
+    : [];
+  s.devDomains = strArr(s.devDomains);
+  s.whitelist = strArr(s.whitelist);
+
+  if (!ACCENTS[s.accent]) s.accent = DEFAULTS.accent;
+
+  // keep only known keys so stale/injected fields don't accumulate in storage
+  const clean = {};
+  for (const k of Object.keys(DEFAULTS)) clean[k] = s[k];
+  return clean;
+}
+
 export async function getSettings() {
   const raw = await chrome.storage.sync.get(SETTINGS_KEY);
-  return { ...DEFAULTS, ...(raw[SETTINGS_KEY] || {}) };
+  return normalizeSettings(raw[SETTINGS_KEY]);
 }
 
 export async function saveSettings(partial) {
   const current = await getSettings();
-  const next = { ...current, ...partial };
+  const next = normalizeSettings({ ...current, ...partial });
   await chrome.storage.sync.set({ [SETTINGS_KEY]: next });
   return next;
 }
