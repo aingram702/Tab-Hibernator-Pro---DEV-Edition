@@ -122,6 +122,12 @@ runs both on every push (`.github/workflows/ci.yml`). The pure logic lives in
 `src/lib/settings.js` so it stays unit-testable; UI and hibernation flows are
 exercised by an in-browser Playwright harness during development.
 
+## Privacy
+
+Tab Hibernator Pro collects nothing, sends nothing, and has no servers — all tab
+management happens locally in your browser. See [PRIVACY.md](PRIVACY.md) for the
+full policy (this file's URL can be used as the Chrome Web Store privacy policy link).
+
 ## License
 
 MIT
